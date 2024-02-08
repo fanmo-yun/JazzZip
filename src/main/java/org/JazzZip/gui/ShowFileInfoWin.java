@@ -8,6 +8,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 
@@ -16,7 +18,7 @@ public class ShowFileInfoWin extends JFrame {
         setTitle("文件信息");
         frame.setEnabled(false);
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        setSize(320, 100);
+        setSize(320, 200);
         setResizable(false);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
@@ -40,7 +42,9 @@ public class ShowFileInfoWin extends JFrame {
         String fileInfo = null;
         if (zipFileInfo != null) {
             fileInfo = "文件名称: " + zipFileInfo.getFileName() +
-            "\n压缩后大小: " + formatFileSize(zipFileInfo.getCompressedSize());
+            "\n压缩后大小: " + formatFileSize(zipFileInfo.getCompressedSize()) +
+            "\n解压后大小: " + formatFileSize(zipFileInfo.getUncompressedSize()) +
+            "\n压缩方法: " + zipFileInfo.getCompressionMethod();
         }
 
         JTextArea textArea = new JTextArea(fileInfo);

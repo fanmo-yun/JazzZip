@@ -6,6 +6,7 @@ import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
+import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
 import org.apache.commons.io.FileUtils;
 
@@ -15,8 +16,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Objects;
 
@@ -183,9 +184,9 @@ public class NewPackageWin extends JFrame {
                 parameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
 
                 for (File file : FilesList) {
-                    if (file.isFile()) {
+                    if (file.exists() && file.isFile() && file.length() != 0) {
                         zipFile.addFile(file, parameters);
-                    } else if (file.isDirectory()) {
+                    } else if (file.exists() && file.isDirectory() && FileUtils.sizeOfDirectory(file) != 0) {
                         zipFile.addFolder(file, parameters);
                     }
                 }
@@ -217,13 +218,35 @@ public class NewPackageWin extends JFrame {
 
     private static void Create7zFile(File SevenZipFileName, JPasswordField PasswordField) {
         if (PasswordField.getPassword().length != 0) {
-
-        } else {
-            try(SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(SevenZipFileName)) {
-
-            } catch (IOException e) {
+            try(SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(SevenZipFileName, PasswordField.getPassword())) {
+                for (File file : FilesList) {
+                    SevenZipFileProcess(sevenZOutputFile, file);
+                }
+            } catch (Exception e) {
                 throw new RuntimeException(e);
             }
+        } else {
+            try(SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(SevenZipFileName)) {
+                for (File file : FilesList) {
+                    SevenZipFileProcess(sevenZOutputFile, file);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private static void SevenZipFileProcess(SevenZOutputFile sevenZOutputFile, File file) throws Exception {
+        if (file.exists() && file.isDirectory() && FileUtils.sizeOfDirectory(file) != 0) {
+            SevenZArchiveEntry entry = sevenZOutputFile.createArchiveEntry(file, file.getName());
+            sevenZOutputFile.putArchiveEntry(entry);
+            sevenZOutputFile.write(Files.readAllBytes(file.toPath()));
+            sevenZOutputFile.closeArchiveEntry();
+        } else if (file.exists() && file.isFile() && file.length() != 0) {
+            SevenZArchiveEntry entry = sevenZOutputFile.createArchiveEntry(file, file.getName());
+            sevenZOutputFile.putArchiveEntry(entry);
+            sevenZOutputFile.write(Files.readAllBytes(file.toPath()));
+            sevenZOutputFile.closeArchiveEntry();
         }
     }
 }

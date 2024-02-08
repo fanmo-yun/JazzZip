@@ -1,13 +1,29 @@
 package org.JazzZip;
 import org.JazzZip.gui.MainWin;
-import org.apache.commons.io.FileUtils;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class Main {
+    private static void deleteContents(File directory) {
+        if (directory.exists() && directory.isDirectory()) {
+            File[] files = directory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        deleteContents(file);
+                    } else {
+                        boolean deleted = file.delete();
+                        if (!deleted) {
+                            System.out.println("Failed to delete file: " + file.getAbsolutePath());
+                        }
+                    }
+                }
+            }
+        } else {
+            System.out.println("Invalid directory: " + directory.getAbsolutePath());
+        }
+    }
+
     private static void CheckTempPathExists() {
         File TempFolder = new File(System.getProperty("user.dir") + "\\temp");
         if (!TempFolder.exists()) {
@@ -20,12 +36,7 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            Path baseDir = Paths.get(System.getProperty("user.dir") + "\\temp");
-            try {
-                FileUtils.deleteDirectory(baseDir.toFile());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            deleteContents(new File(System.getProperty("user.dir") + "\\temp"));
         }));
 
         CheckTempPathExists();

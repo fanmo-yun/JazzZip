@@ -84,7 +84,7 @@ public class ShowInfoWin extends JFrame {
         }
         String format = null;
         if (instant != null) {
-            format = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault()).format(instant);
+            format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault()).format(instant);
         }
         return format;
     }
@@ -103,7 +103,7 @@ public class ShowInfoWin extends JFrame {
         }
         String format = null;
         if (instant != null) {
-            format = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault()).format(instant);
+            format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault()).format(instant);
         }
         return format;
     }
@@ -122,7 +122,7 @@ public class ShowInfoWin extends JFrame {
         }
         String format = null;
         if (instant != null) {
-            format = DateTimeFormatter.ofPattern("yyyy-MM-dd").withZone(ZoneId.systemDefault()).format(instant);
+            format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault()).format(instant);
         }
         return format;
     }

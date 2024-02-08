@@ -4,8 +4,10 @@ import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
+import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
+import net.lingala.zip4j.model.enums.EncryptionMethod;
 import org.JazzZip.gui.PasswdDialog;
 import org.JazzZip.gui.ShowFileInfoWin;
 import org.JazzZip.gui.ShowInfoWin;
@@ -139,6 +141,15 @@ public class ZipProcess {
         try (zipFile) {
             zipFile.setCharset(Charset.forName("GBK"));
             ZipParameters parameters = new ZipParameters();
+            char[] passwd = ZipPassword(zipFile, frame);
+            if (!Arrays.equals(passwd, "".toCharArray())) {
+                zipFile.setPassword(passwd);
+                parameters.setEncryptFiles(true);
+                parameters.setEncryptionMethod(EncryptionMethod.AES);
+                parameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
+            } else {
+                return;
+            }
             parameters.setCompressionMethod(CompressionMethod.DEFLATE);
             parameters.setCompressionLevel(CompressionLevel.NORMAL);
             String RootFolder = PathJoin(WillAddFile);
