@@ -76,7 +76,7 @@ public class ShowInfoWin extends JFrame {
             Path path =  file.toPath();
             attr = Files.readAttributes(path, BasicFileAttributes.class);
         } catch (IOException e) {
-            throw new RuntimeException("get time wrong");
+            throw new RuntimeException(e);
         }
         Instant instant = null;
         if (attr != null) {
@@ -95,7 +95,7 @@ public class ShowInfoWin extends JFrame {
             Path path =  file.toPath();
             attr = Files.readAttributes(path, BasicFileAttributes.class);
         } catch (IOException e) {
-            throw new RuntimeException("get time wrong");
+            throw new RuntimeException(e);
         }
         Instant instant = null;
         if (attr != null) {
@@ -114,7 +114,7 @@ public class ShowInfoWin extends JFrame {
             Path path =  file.toPath();
             attr = Files.readAttributes(path, BasicFileAttributes.class);
         } catch (IOException e) {
-            throw new RuntimeException("get time wrong");
+            throw new RuntimeException(e);
         }
         Instant instant = null;
         if (attr != null) {

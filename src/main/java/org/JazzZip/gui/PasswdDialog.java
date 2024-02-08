@@ -80,6 +80,10 @@ public class PasswdDialog extends JDialog {
         dispose();
     }
 
+    public char[] getPassword() {
+        return passwordField.getPassword();
+    }
+
     private void noPasswordAction() {
         dispose();
     }

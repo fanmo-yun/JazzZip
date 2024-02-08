@@ -119,7 +119,7 @@ public class MainWin {
             long currentTime = System.currentTimeMillis();
             long doubleClickInterval = 500;
             TreePath path = tree.getPathForLocation(e.getX(), e.getY());
-            TreePath selectedDoubleNode = null;
+            TreePath selectedDoubleNode;
             if (currentTime - lastClickTime < doubleClickInterval) {
                 if (path != null) {
                     DefaultMutableTreeNode selected = (DefaultMutableTreeNode) path.getLastPathComponent();
@@ -130,7 +130,6 @@ public class MainWin {
                 }
             }
             lastClickTime = currentTime;
-            selectedDoubleNode = null;
         }
     }
 
@@ -259,7 +258,7 @@ public class MainWin {
             NewPackageWin newPackageWin = new NewPackageWin(MainFrame);
             newPackageWin.setVisible(true);
         } catch (Exception e) {
-            throw new RuntimeException();
+            throw new RuntimeException(e);
         }
     }
 
@@ -318,12 +317,13 @@ public class MainWin {
             @Override
             public boolean accept(File f) {
                 return f.isDirectory()
-                        || f.getName().toLowerCase().endsWith(".zip");
+                        || f.getName().toLowerCase().endsWith(".zip")
+                        || f.getName().toLowerCase().endsWith(".7z");
             }
 
             @Override
             public String getDescription() {
-                return "compressed Files (*.zip)";
+                return "compressed Files (*.zip, *.7z)";
             }
         });
 

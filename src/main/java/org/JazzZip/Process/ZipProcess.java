@@ -188,7 +188,7 @@ public class ZipProcess {
                 Desktop.getDesktop().open(extractWhere.resolve(openFileName).toFile());
             }
         } catch (Exception e) {
-            throw new RuntimeException();
+            throw new RuntimeException(e);
         }
     }
 

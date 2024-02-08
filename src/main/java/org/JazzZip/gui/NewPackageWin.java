@@ -6,6 +6,7 @@ import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
+import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
 import org.apache.commons.io.FileUtils;
 
 import javax.swing.*;
@@ -14,12 +15,13 @@ import java.awt.event.ItemEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
 import java.util.Objects;
 
 public class NewPackageWin extends JFrame {
-    final private static String[] opt = {"Zip archive"};
+    final private static String[] opt = {"Zip archive", "7z archive"};
     private static String SavePath = null;
     private static File[] FilesList = null;
     public NewPackageWin(JFrame frame) throws Exception {
@@ -152,6 +154,8 @@ public class NewPackageWin extends JFrame {
                 if (!PackageFile.exists()) {
                     if (Objects.equals(Objects.requireNonNull(FileTypeComboBox.getSelectedItem()).toString(), "Zip archive")) {
                         CreateZipFile(PackageFile, PasswordField);
+                    } else {
+                        Create7zFile(PackageFile, PasswordField);
                     }
                 } else {
                     JOptionPane.showMessageDialog(this, "文件已存在", "JazzZip", JOptionPane.ERROR_MESSAGE);
@@ -185,8 +189,8 @@ public class NewPackageWin extends JFrame {
                         zipFile.addFolder(file, parameters);
                     }
                 }
-            } catch (Exception ignored) {
-                throw new RuntimeException();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         } else {
             ZipFile zipFile = new ZipFile(ZipFileName);
@@ -203,11 +207,23 @@ public class NewPackageWin extends JFrame {
                         zipFile.addFolder(file, parameters);
                     }
                 }
-            } catch (Exception ignored) {
-                throw new RuntimeException();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
             }
         }
         JOptionPane.showMessageDialog(this, "文件创建成功", "JazzZip", JOptionPane.INFORMATION_MESSAGE);
         dispose();
+    }
+
+    private static void Create7zFile(File SevenZipFileName, JPasswordField PasswordField) {
+        if (PasswordField.getPassword().length != 0) {
+
+        } else {
+            try(SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(SevenZipFileName)) {
+                System.out.println("SevenZip");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
