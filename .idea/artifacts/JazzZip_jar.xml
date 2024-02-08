@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="JazzZip:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/JazzZip_jar</output-path>
+    <root id="archive" name="JazzZip.jar">
+      <element id="module-output" name="JazzZip" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/commons-io/commons-io/2.15.1/commons-io-2.15.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/net/lingala/zip4j/zip4j/2.11.5/zip4j-2.11.5.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
