@@ -1,7 +1,6 @@
 package org.JazzZip.gui;
 import net.lingala.zip4j.model.FileHeader;
 import org.JazzZip.Process.ZipProcess;
-import org.apache.commons.io.FileUtils;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -10,9 +9,6 @@ import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -1,7 +1,5 @@
 package org.JazzZip.gui;
 
-import net.lingala.zip4j.ZipFile;
-
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
