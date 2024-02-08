@@ -117,7 +117,7 @@ public class MainWin {
         @Override
         public void mouseClicked(MouseEvent e) {
             long currentTime = System.currentTimeMillis();
-            long doubleClickInterval = 500;
+            long doubleClickInterval = 200;
             TreePath path = tree.getPathForLocation(e.getX(), e.getY());
             TreePath selectedDoubleNode;
             if (currentTime - lastClickTime < doubleClickInterval) {

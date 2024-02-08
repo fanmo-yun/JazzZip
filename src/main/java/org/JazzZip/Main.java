@@ -21,11 +21,10 @@ public class Main {
     public static void main(String[] args) throws Exception {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             Path baseDir = Paths.get(System.getProperty("user.dir") + "\\temp");
-            System.out.println(baseDir);
             try {
                 FileUtils.deleteDirectory(baseDir.toFile());
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }));
 

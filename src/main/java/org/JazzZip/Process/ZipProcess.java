@@ -21,6 +21,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -42,11 +43,12 @@ public class ZipProcess {
         return false;
     }
 
-    public static void ZipPassword(ZipFile zipFile, JFrame frame) {
+    public static char[] ZipPassword(ZipFile zipFile, JFrame frame) {
         try {
             if (zipFile.isEncrypted()) {
-                PasswdDialog passwdDialog = new PasswdDialog(frame, zipFile);
+                PasswdDialog passwdDialog = new PasswdDialog(frame);
                 passwdDialog.setVisible(true);
+                return passwdDialog.getPassword();
             }
         } catch (ZipException e) {
             JOptionPane.showMessageDialog(frame, "文件错误", "JazzZip", JOptionPane.ERROR_MESSAGE);
@@ -54,6 +56,7 @@ public class ZipProcess {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        return "".toCharArray();
     }
 
     public static List<FileHeader> GetZipFileNames(String f, JFrame frame) {
@@ -80,7 +83,12 @@ public class ZipProcess {
             return;
         }
         try (zipFile) {
-            ZipPassword(zipFile, frame);
+            char[] passwd = ZipPassword(zipFile, frame);
+            if (!Arrays.equals(passwd, "".toCharArray())) {
+                zipFile.setPassword(passwd);
+            } else {
+                return;
+            }
             zipFile.setCharset(Charset.forName("GBK"));
             zipFile.extractAll(extractFolderPath);
             JOptionPane.showMessageDialog(frame, "解压成功", "JazzZip", JOptionPane.INFORMATION_MESSAGE);
@@ -102,7 +110,12 @@ public class ZipProcess {
         }
 
         try (zipFile) {
-            ZipPassword(zipFile, frame);
+            char[] passwd = ZipPassword(zipFile, frame);
+            if (!Arrays.equals(passwd, "".toCharArray())) {
+                zipFile.setPassword(passwd);
+            } else {
+                return;
+            }
             List<String> extractFiles = PathJoins(ExtractNode);
             zipFile.setCharset(Charset.forName("GBK"));
             if (extractFiles != null) {
@@ -173,7 +186,12 @@ public class ZipProcess {
         }
         Path extractWhere;
         try(zipFile) {
-            ZipPassword(zipFile, frame);
+            char[] passwd = ZipPassword(zipFile, frame);
+            if (!Arrays.equals(passwd, "".toCharArray())) {
+                zipFile.setPassword(passwd);
+            } else {
+                return;
+            }
             String openFileName = PathJoin(node);
             Path baseDir = Paths.get(System.getProperty("user.dir") + "\\temp");
             extractWhere = baseDir.resolve(String.valueOf(System.currentTimeMillis()));

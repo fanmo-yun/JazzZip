@@ -11,8 +11,9 @@ import java.awt.event.WindowEvent;
 
 public class PasswdDialog extends JDialog {
     private static JPasswordField passwordField;
+    private static char[] passwd = "".toCharArray();
 
-    public PasswdDialog(JFrame parent, ZipFile zipFile) throws Exception {
+    public PasswdDialog(JFrame parent) throws Exception {
         super(parent, "输入密码", true);
         parent.setEnabled(false);
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -21,20 +22,21 @@ public class PasswdDialog extends JDialog {
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
         setLayout(new BorderLayout());
-        buildUI(zipFile);
+        buildUI();
 
         setLocationRelativeTo(parent);
 
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
-            parent.setEnabled(true);
-            super.windowClosed(e);
+                passwd = "".toCharArray();
+                parent.setEnabled(true);
+                super.windowClosed(e);
             }
         });
     }
 
-    private void buildUI(ZipFile zipFile) {
+    private void buildUI() {
         JPanel mainPanel = new JPanel(new FlowLayout());
         mainPanel.setBorder(new EmptyBorder(13, 0, 0, 0));
 
@@ -62,7 +64,7 @@ public class PasswdDialog extends JDialog {
 
         JButton button1 = new JButton("确定");
         button1.setFocusable(false);
-        button1.addActionListener(e -> getPasswordAction(zipFile));
+        button1.addActionListener(e -> getPasswordAction());
 
         JButton button2 = new JButton("取消");
         button2.setFocusable(false);
@@ -75,16 +77,17 @@ public class PasswdDialog extends JDialog {
         add(mainPanel);
     }
 
-    private void getPasswordAction(ZipFile zipFile) {
-        zipFile.setPassword(passwordField.getPassword());
+    private void getPasswordAction() {
+        passwd = passwordField.getPassword();
+        dispose();
+    }
+
+    private void noPasswordAction() {
+        passwd = "".toCharArray();
         dispose();
     }
 
     public char[] getPassword() {
-        return passwordField.getPassword();
-    }
-
-    private void noPasswordAction() {
-        dispose();
+        return passwd;
     }
 }

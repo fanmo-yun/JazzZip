@@ -220,7 +220,7 @@ public class NewPackageWin extends JFrame {
 
         } else {
             try(SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(SevenZipFileName)) {
-                System.out.println("SevenZip");
+
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
