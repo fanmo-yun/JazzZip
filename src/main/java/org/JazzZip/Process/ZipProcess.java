@@ -58,7 +58,7 @@ public class ZipProcess {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return "".toCharArray();
+        return null;
     }
 
     public static List<FileHeader> GetZipFileNames(String f, JFrame frame) {
@@ -86,10 +86,12 @@ public class ZipProcess {
         }
         try (zipFile) {
             char[] passwd = ZipPassword(zipFile, frame);
-            if (!Arrays.equals(passwd, "".toCharArray())) {
-                zipFile.setPassword(passwd);
-            } else {
-                return;
+            if (passwd != null) {
+                if (!Arrays.equals(passwd, "".toCharArray())) {
+                    zipFile.setPassword(passwd);
+                } else {
+                    return;
+                }
             }
             zipFile.setCharset(Charset.forName("GBK"));
             zipFile.extractAll(extractFolderPath);
@@ -113,10 +115,12 @@ public class ZipProcess {
 
         try (zipFile) {
             char[] passwd = ZipPassword(zipFile, frame);
-            if (!Arrays.equals(passwd, "".toCharArray())) {
-                zipFile.setPassword(passwd);
-            } else {
-                return;
+            if (passwd != null) {
+                if (!Arrays.equals(passwd, "".toCharArray())) {
+                    zipFile.setPassword(passwd);
+                } else {
+                    return;
+                }
             }
             List<String> extractFiles = PathJoins(ExtractNode);
             zipFile.setCharset(Charset.forName("GBK"));
@@ -142,13 +146,15 @@ public class ZipProcess {
             zipFile.setCharset(Charset.forName("GBK"));
             ZipParameters parameters = new ZipParameters();
             char[] passwd = ZipPassword(zipFile, frame);
-            if (!Arrays.equals(passwd, "".toCharArray())) {
-                zipFile.setPassword(passwd);
-                parameters.setEncryptFiles(true);
-                parameters.setEncryptionMethod(EncryptionMethod.AES);
-                parameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
-            } else {
-                return;
+            if (passwd != null) {
+                if (!Arrays.equals(passwd, "".toCharArray())) {
+                    zipFile.setPassword(passwd);
+                    parameters.setEncryptFiles(true);
+                    parameters.setEncryptionMethod(EncryptionMethod.AES);
+                    parameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
+                } else {
+                    return;
+                }
             }
             parameters.setCompressionMethod(CompressionMethod.DEFLATE);
             parameters.setCompressionLevel(CompressionLevel.NORMAL);

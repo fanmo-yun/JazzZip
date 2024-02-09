@@ -6,8 +6,7 @@ import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
-import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
-import org.apache.commons.compress.archivers.sevenz.SevenZOutputFile;
+
 import org.apache.commons.io.FileUtils;
 
 import javax.swing.*;
@@ -22,7 +21,7 @@ import java.nio.file.Paths;
 import java.util.Objects;
 
 public class NewPackageWin extends JFrame {
-    final private static String[] opt = {"Zip archive", "7z archive"};
+    final private static String[] opt = {"Zip archive"};
     private static String SavePath = null;
     private static File[] FilesList = null;
     public NewPackageWin(JFrame frame) throws Exception {
@@ -155,8 +154,6 @@ public class NewPackageWin extends JFrame {
                 if (!PackageFile.exists()) {
                     if (Objects.equals(Objects.requireNonNull(FileTypeComboBox.getSelectedItem()).toString(), "Zip archive")) {
                         CreateZipFile(PackageFile, PasswordField);
-                    } else {
-                        Create7zFile(PackageFile, PasswordField);
                     }
                 } else {
                     JOptionPane.showMessageDialog(this, "文件已存在", "JazzZip", JOptionPane.ERROR_MESSAGE);
@@ -214,39 +211,5 @@ public class NewPackageWin extends JFrame {
         }
         JOptionPane.showMessageDialog(this, "文件创建成功", "JazzZip", JOptionPane.INFORMATION_MESSAGE);
         dispose();
-    }
-
-    private static void Create7zFile(File SevenZipFileName, JPasswordField PasswordField) {
-        if (PasswordField.getPassword().length != 0) {
-            try(SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(SevenZipFileName, PasswordField.getPassword())) {
-                for (File file : FilesList) {
-                    SevenZipFileProcess(sevenZOutputFile, file);
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            try(SevenZOutputFile sevenZOutputFile = new SevenZOutputFile(SevenZipFileName)) {
-                for (File file : FilesList) {
-                    SevenZipFileProcess(sevenZOutputFile, file);
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
-
-    private static void SevenZipFileProcess(SevenZOutputFile sevenZOutputFile, File file) throws Exception {
-        if (file.exists() && file.isDirectory() && FileUtils.sizeOfDirectory(file) != 0) {
-            SevenZArchiveEntry entry = sevenZOutputFile.createArchiveEntry(file, file.getName());
-            sevenZOutputFile.putArchiveEntry(entry);
-            sevenZOutputFile.write(Files.readAllBytes(file.toPath()));
-            sevenZOutputFile.closeArchiveEntry();
-        } else if (file.exists() && file.isFile() && file.length() != 0) {
-            SevenZArchiveEntry entry = sevenZOutputFile.createArchiveEntry(file, file.getName());
-            sevenZOutputFile.putArchiveEntry(entry);
-            sevenZOutputFile.write(Files.readAllBytes(file.toPath()));
-            sevenZOutputFile.closeArchiveEntry();
-        }
     }
 }

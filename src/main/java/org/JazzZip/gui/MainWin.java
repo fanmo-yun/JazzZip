@@ -1,5 +1,6 @@
 package org.JazzZip.gui;
 import net.lingala.zip4j.model.FileHeader;
+import org.JazzZip.Process.RarProcess;
 import org.JazzZip.Process.ZipProcess;
 
 import javax.swing.*;
@@ -213,6 +214,8 @@ public class MainWin {
                 }
                 FileNameAddToList(fileName, fileList);
             }
+        } else if (fileName.toLowerCase().endsWith(".rar")) {
+            
         } else {
             JOptionPane.showMessageDialog(MainFrame, "文件载入出错", "JazzZip", JOptionPane.ERROR_MESSAGE);
         }
@@ -236,15 +239,25 @@ public class MainWin {
     private static void ExtractFile() {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-
-        int result = fileChooser.showDialog(MainFrame, "选择路径");
-        if (result == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile();
-            String selected = selectedFile.getAbsolutePath();
-            if (selectedExtractNode == null) {
-                ZipProcess.UnzipFile(selectedFilePath, selected, MainFrame);
-            } else {
-                ZipProcess.UnzipFile(selectedFilePath, selected, selectedExtractNode, MainFrame);
+        if (selectedFilePath.toLowerCase().endsWith(".zip")) {
+            int result = fileChooser.showDialog(MainFrame, "选择路径");
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = fileChooser.getSelectedFile();
+                String selected = selectedFile.getAbsolutePath();
+                if (selectedExtractNode == null) {
+                    ZipProcess.UnzipFile(selectedFilePath, selected, MainFrame);
+                } else {
+                    ZipProcess.UnzipFile(selectedFilePath, selected, selectedExtractNode, MainFrame);
+                }
+            }
+        } else {
+            int result = fileChooser.showDialog(MainFrame, "选择路径");
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File selectedFile = fileChooser.getSelectedFile();
+                String selected = selectedFile.getAbsolutePath();
+                if (selectedExtractNode == null) {
+                    RarProcess.ExtractRar(selectedFilePath, selected, MainFrame);
+                }
             }
         }
     }
@@ -314,7 +327,7 @@ public class MainWin {
             public boolean accept(File f) {
                 return f.isDirectory()
                         || f.getName().toLowerCase().endsWith(".zip")
-                        || f.getName().toLowerCase().endsWith(".7z");
+                        || f.getName().toLowerCase().endsWith(".rar");
             }
 
             @Override
@@ -342,7 +355,7 @@ public class MainWin {
     }
 
     private static void AddAction() {
-        if (!selectedFilePath.isEmpty() && selectedAddNode != null) {
+        if (!selectedFilePath.isEmpty() && selectedAddNode != null && selectedFilePath.toLowerCase().endsWith(".zip")) {
             AddFileToZip();
         }
     }
@@ -350,6 +363,7 @@ public class MainWin {
     private static void DeleteAction() {
         if (!selectedFilePath.isEmpty() &&
                 selectedDeleNode != null &&
+                selectedFilePath.toLowerCase().endsWith(".zip") &&
                 JOptionPane.showConfirmDialog(MainFrame, "确认删除?", "JazzZip", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
             DeleteFile();
             selectedDeleNode = null;
