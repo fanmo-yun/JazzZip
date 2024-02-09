@@ -35,9 +35,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            deleteContents(new File(System.getProperty("user.dir") + "\\temp"));
-        }));
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> deleteContents(new File(System.getProperty("user.dir") + "\\temp"))));
 
         CheckTempPathExists();
         MainWin.MainWindow();
