@@ -8,8 +8,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.*;
 import java.awt.*;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -41,6 +39,16 @@ public class MainWin {
         MainFrame.setVisible(true);
     }
 
+    private static void AllClear() {
+        tree.clearSelection();
+        selectedAddNode = null;
+        selectedDeleNode = null;
+        selectedInfoNode = null;
+        selectedExtractNode = null;
+        selectedChangeNode = null;
+        zipFileNames = null;
+    }
+
     private static void BuildMenu() {
         JMenuBar menuBar = new JMenuBar();
         JMenu fileMenu = new JMenu("文件");
@@ -63,15 +71,7 @@ public class MainWin {
         JMenuItem changeName = new JMenuItem("重新命名");
         changeName.addActionListener(e -> ChangeNameAction());
         JMenuItem cancelChose = new JMenuItem("取消选择");
-        cancelChose.addActionListener(e -> {
-            tree.clearSelection();
-            selectedAddNode = null;
-            selectedDeleNode = null;
-            selectedInfoNode = null;
-            selectedExtractNode = null;
-            selectedChangeNode = null;
-            zipFileNames = null;
-        });
+        cancelChose.addActionListener(e -> AllClear());
         editorMenu.add(addFile);
         editorMenu.add(removeFile);
         editorMenu.add(changeName);
@@ -104,6 +104,7 @@ public class MainWin {
         DefaultTreeModel treeModel = new DefaultTreeModel(top_node);
         tree = new JTree(treeModel);
         AddPopupMenu();
+        tree.setDragEnabled(true);
         tree.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -168,12 +169,16 @@ public class MainWin {
         DeleItem.addActionListener(e -> DeleteAction());
         JMenuItem InfoItem = new JMenuItem("关于");
         InfoItem.addActionListener(e -> InfoAction());
+        JMenuItem ClearItem = new JMenuItem("取消选择");
+        ClearItem.addActionListener(e -> AllClear());
 
         popupMenu.add(ExtractItem);
         popupMenu.add(ChangeNameItem);
         popupMenu.add(AddItem);
         popupMenu.add(DeleItem);
         popupMenu.add(InfoItem);
+        popupMenu.addSeparator();
+        popupMenu.add(ClearItem);
 
         tree.addMouseListener(new MouseAdapter() {
             @Override
@@ -225,7 +230,7 @@ public class MainWin {
     }
 
     private static void ProcessFile(String fileName) {
-        if (fileName.toLowerCase().endsWith(".zip")) {
+        if (fileName.toLowerCase().endsWith(".zip") || fileName.toLowerCase().endsWith(".zip.001")) {
             zipFileNames = ZipProcess.GetZipFileNames(fileName, MainFrame);
             if (zipFileNames != null) {
                 ArrayList<String> fileList = new ArrayList<>();
@@ -335,7 +340,8 @@ public class MainWin {
             @Override
             public boolean accept(File f) {
                 return f.isDirectory()
-                        || f.getName().toLowerCase().endsWith(".zip");
+                        || f.getName().toLowerCase().endsWith(".zip")
+                        || f.getName().toLowerCase().endsWith(".zip.001");
             }
 
             @Override
@@ -371,7 +377,8 @@ public class MainWin {
     private static void DeleteAction() {
         if (!selectedFilePath.isEmpty() &&
                 selectedDeleNode != null &&
-                JOptionPane.showConfirmDialog(MainFrame, "确认删除?", "JazzZip", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                selectedFilePath.toLowerCase().endsWith(".zip") &&
+                JOptionPane.showConfirmDialog(MainFrame, "确认删除?", "JazzZip", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION ) {
             DeleteFile();
             selectedDeleNode = null;
             tree.clearSelection();
@@ -379,7 +386,7 @@ public class MainWin {
     }
 
     private static void ChangeNameAction() {
-        if (!selectedFilePath.isEmpty() && selectedChangeNode != null) {
+        if (!selectedFilePath.isEmpty() && selectedChangeNode != null && selectedFilePath.toLowerCase().endsWith(".zip")) {
             ZipProcess.ChangeName(selectedFilePath, MainFrame, selectedChangeNode);
             ProcessFile(selectedFilePath);
             selectedChangeNode = null;
