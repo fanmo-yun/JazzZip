@@ -9,7 +9,7 @@ import java.awt.event.WindowEvent;
 
 public class PasswdDialog extends JDialog {
     private static JPasswordField passwordField;
-    private static char[] passwd = "".toCharArray();
+    private static char[] passwd = null;
 
     public PasswdDialog(JFrame parent) throws Exception {
         super(parent, "输入密码", true);
@@ -27,7 +27,7 @@ public class PasswdDialog extends JDialog {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
-                passwd = "".toCharArray();
+                passwd = null;
                 parent.setEnabled(true);
                 super.windowClosed(e);
             }
@@ -81,7 +81,7 @@ public class PasswdDialog extends JDialog {
     }
 
     private void noPasswordAction() {
-        passwd = "".toCharArray();
+        passwd = null;
         dispose();
     }
 

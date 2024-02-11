@@ -8,6 +8,7 @@ import net.lingala.zip4j.model.enums.AesKeyStrength;
 import net.lingala.zip4j.model.enums.CompressionLevel;
 import net.lingala.zip4j.model.enums.CompressionMethod;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
+import org.JazzZip.gui.ChangeNameDialog;
 import org.JazzZip.gui.PasswdDialog;
 import org.JazzZip.gui.ShowFileInfoWin;
 import org.JazzZip.gui.ShowInfoWin;
@@ -68,7 +69,6 @@ public class ZipProcess {
             return zipFile.getFileHeaders();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(frame, "文件可能损害", "JazzZip", JOptionPane.ERROR_MESSAGE);
-            e.fillInStackTrace();
         }
         return null;
     }
@@ -98,6 +98,7 @@ public class ZipProcess {
             JOptionPane.showMessageDialog(frame, "解压成功", "JazzZip", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(frame, "文件解压出错", "JazzZip", JOptionPane.ERROR_MESSAGE);
+            throw new RuntimeException(e);
         }
     }
 
@@ -134,6 +135,7 @@ public class ZipProcess {
             JOptionPane.showMessageDialog(frame, "解压成功", "JazzZip", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(frame, "文件解压出错", "JazzZip", JOptionPane.ERROR_MESSAGE);
+            throw new RuntimeException(e);
         }
     }
 
@@ -170,6 +172,7 @@ public class ZipProcess {
             JOptionPane.showMessageDialog(frame, "添加成功", "JazzZip", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception e) {
             JOptionPane.showMessageDialog(frame, "文件添加错误", "JazzZip", JOptionPane.ERROR_MESSAGE);
+            throw new RuntimeException(e);
         }
     }
 
@@ -193,6 +196,7 @@ public class ZipProcess {
             }
         } catch (IOException e) {
             JOptionPane.showMessageDialog(frame, "文件删除错误", "JazzZip", JOptionPane.ERROR_MESSAGE);
+            throw new RuntimeException(e);
         }
     }
 
@@ -204,10 +208,12 @@ public class ZipProcess {
         Path extractWhere;
         try(zipFile) {
             char[] passwd = ZipPassword(zipFile, frame);
-            if (!Arrays.equals(passwd, "".toCharArray())) {
-                zipFile.setPassword(passwd);
-            } else {
-                return;
+            if (passwd != null) {
+                if (!Arrays.equals(passwd, "".toCharArray())) {
+                    zipFile.setPassword(passwd);
+                } else {
+                    return;
+                }
             }
             String openFileName = PathJoin(node);
             Path baseDir = Paths.get(System.getProperty("user.dir") + "\\temp");
@@ -242,6 +248,65 @@ public class ZipProcess {
             JOptionPane.showMessageDialog(frame, "文件信息获取失败", "JazzZip", JOptionPane.ERROR_MESSAGE);
             throw new RuntimeException(e);
         } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void ChangeName(String f, JFrame frame, TreePath node) {
+        ZipFile zipFile = new ZipFile(f);
+        if (CheckZipFile(zipFile, frame)) {
+            return;
+        }
+        try(zipFile) {
+            char[] passwd = ZipPassword(zipFile, frame);
+            if (passwd != null) {
+                if (!Arrays.equals(passwd, "".toCharArray())) {
+                    zipFile.setPassword(passwd);
+                } else {
+                    return;
+                }
+            }
+            ChangeNameDialog changeNameDialog = new ChangeNameDialog(frame);
+            changeNameDialog.setVisible(true);
+            String willChangeName = changeNameDialog.getTest();
+            if (willChangeName != null) {
+                zipFile.setCharset(Charset.forName("GBK"));
+                String path = PathJoin(node);
+                if (path != null) {
+                    String extractPath = String.valueOf(Paths.get(System.getProperty("user.dir") + "\\temp").resolve(String.valueOf(System.currentTimeMillis())));
+                    zipFile.extractFile(path, extractPath);
+                    File file = new File(extractPath + "\\" + path);
+                    File newfile = new File(extractPath + "\\" + willChangeName);
+                    try {
+                        if (file.isDirectory()) {
+                            FileUtils.moveDirectory(file, newfile);
+                        } else if (file.isFile()) {
+                            FileUtils.moveFile(file, newfile);
+                        }
+                    } catch (IOException e) {
+                        JOptionPane.showMessageDialog(frame, "更名失败", "JazzZip", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    ZipParameters parameters = new ZipParameters();
+                    parameters.setCompressionMethod(CompressionMethod.DEFLATE);
+                    parameters.setCompressionLevel(CompressionLevel.NORMAL);
+                    if (passwd != null) {
+                        parameters.setEncryptFiles(true);
+                        parameters.setEncryptionMethod(EncryptionMethod.AES);
+                        parameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
+                    }
+                    String ParentPath = PathJoin(node.getParentPath());
+                    parameters.setRootFolderNameInZip(Objects.requireNonNullElse(ParentPath, ""));
+                    if (newfile.isFile()) {
+                        zipFile.addFile(newfile, parameters);
+                    } else if (newfile.isDirectory()) {
+                        zipFile.addFolder(newfile, parameters);
+                    }
+                    zipFile.removeFile(path);
+                }
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(frame, "文件读取失败", "JazzZip", JOptionPane.ERROR_MESSAGE);
             throw new RuntimeException(e);
         }
     }

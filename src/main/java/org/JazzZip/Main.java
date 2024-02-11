@@ -11,6 +11,10 @@ public class Main {
                 for (File file : files) {
                     if (file.isDirectory()) {
                         deleteContents(file);
+                        boolean deleted = file.delete();
+                        if (!deleted) {
+                            System.out.println("Failed to delete file: " + file.getAbsolutePath());
+                        }
                     } else {
                         boolean deleted = file.delete();
                         if (!deleted) {
