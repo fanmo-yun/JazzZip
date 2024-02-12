@@ -16,19 +16,24 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class NewPackageWin extends JFrame {
     final private static String[] opt = {"Zip archive"};
+    final private static String[] SplitOpt = {"10M", "100M", "1000M"};
     private static String SavePath = null;
     private static File[] FilesList = null;
+    private static boolean IsSplit = false;
     public NewPackageWin(JFrame frame) throws Exception {
-        setTitle("文件信息");
+        setTitle("新建压缩包");
         frame.setEnabled(false);
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        setSize(320, 360);
+        setSize(320, 400);
         setResizable(false);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
@@ -84,6 +89,16 @@ public class NewPackageWin extends JFrame {
         ChooseFilePanel.add(ChooseFileButton, BorderLayout.CENTER);
         ChooseFilePanel.add(scrollPane, BorderLayout.SOUTH);
 
+        JPanel SplitTypePanel = new JPanel(new FlowLayout());
+        JCheckBox SplitTypeCheckBox = new JCheckBox("分卷");
+        SplitTypeCheckBox.addItemListener(NewPackageWin::ConfirmSplit);
+        SplitTypeCheckBox.setFocusable(false);
+        JComboBox<String> SplitTypeComboBox = new JComboBox<>(SplitOpt);
+        SplitTypeComboBox.setPreferredSize(new Dimension(230, 20));
+        SplitTypeComboBox.setFocusable(false);
+        SplitTypePanel.add(SplitTypeCheckBox);
+        SplitTypePanel.add(SplitTypeComboBox);
+
         JPanel PasswordPanel = new JPanel(new FlowLayout());
         JLabel PasswordLabel1 = new JLabel("密码:");
         JPasswordField PasswordField1 = new JPasswordField(26);
@@ -97,7 +112,7 @@ public class NewPackageWin extends JFrame {
 
         JPanel ConfirmBtnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         JButton YesBtn = new JButton("确定");
-        YesBtn.addActionListener(e -> confirm(FileNameInput, FileTypeComboBox, PasswordField1));
+        YesBtn.addActionListener(e -> confirm(FileNameInput, FileTypeComboBox, PasswordField1, SplitTypeComboBox));
         YesBtn.setFocusable(false);
         JButton NoBtn = new JButton("取消");
         NoBtn.addActionListener(e -> dispose());
@@ -109,6 +124,7 @@ public class NewPackageWin extends JFrame {
         UI.add(FileNamePanel);
         UI.add(FileTypePanel);
         UI.add(ChooseFilePanel);
+        UI.add(SplitTypePanel);
         UI.add(PasswordPanel);
         UI.add(ConfirmBtnPanel);
         add(UI);
@@ -120,6 +136,10 @@ public class NewPackageWin extends JFrame {
         } else {
             PasswordField.setEchoChar('*');
         }
+    }
+
+    private static void ConfirmSplit(ItemEvent e) {
+        IsSplit = e.getStateChange() == ItemEvent.SELECTED;
     }
 
     private void SaveFolderWhere(JTextField FolderNameText) {
@@ -147,13 +167,13 @@ public class NewPackageWin extends JFrame {
         }
     }
 
-    private void confirm(JTextField FileNameInput, JComboBox<String> FileTypeComboBox, JPasswordField PasswordField) {
+    private void confirm(JTextField FileNameInput, JComboBox<String> FileTypeComboBox, JPasswordField PasswordField, JComboBox<String> SplitTypeComboBox) {
         if (SavePath != null && FilesList != null) {
             if (!Objects.equals(FileNameInput.getText(), "")) {
                 File PackageFile = new File(String.valueOf(Paths.get(SavePath).resolve(FileNameInput.getText())));
                 if (!PackageFile.exists()) {
                     if (Objects.equals(Objects.requireNonNull(FileTypeComboBox.getSelectedItem()).toString(), "Zip archive")) {
-                        CreateZipFile(PackageFile, PasswordField);
+                        CreateZipFile(PackageFile, PasswordField, SplitTypeComboBox);
                     }
                 } else {
                     JOptionPane.showMessageDialog(this, "文件已存在", "JazzZip", JOptionPane.ERROR_MESSAGE);
@@ -168,7 +188,7 @@ public class NewPackageWin extends JFrame {
         }
     }
 
-    private void CreateZipFile(File ZipFileName, JPasswordField PasswordField) {
+    private void CreateZipFile(File ZipFileName, JPasswordField PasswordField, JComboBox<String> SplitTypeComboBox) {
         if (PasswordField.getPassword().length != 0) {
             ZipFile zipFile = new ZipFile(ZipFileName, PasswordField.getPassword());
             zipFile.setCharset(Charset.forName("GBK"));
@@ -180,11 +200,31 @@ public class NewPackageWin extends JFrame {
                 parameters.setEncryptionMethod(EncryptionMethod.AES);
                 parameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
 
-                for (File file : FilesList) {
-                    if (file.exists() && file.isFile() && file.length() != 0) {
-                        zipFile.addFile(file, parameters);
-                    } else if (file.exists() && file.isDirectory() && FileUtils.sizeOfDirectory(file) != 0) {
-                        zipFile.addFolder(file, parameters);
+                if (IsSplit) {
+                    long splitSize = switch (Objects.requireNonNull(SplitTypeComboBox.getSelectedItem()).toString()) {
+                        case "10M" -> 10485760;
+                        case "100M" -> 104857600;
+                        case "1000M" -> 1048576000;
+                        default -> 0;
+                    };
+
+                    List<File> fileStream = Arrays.stream(FilesList).filter(file -> (file.exists() && file.isFile() && file.length() != 0)).toList();
+                    List<File> folderStream = Arrays.stream(FilesList).filter(file -> (file.exists() && file.isDirectory() && FileUtils.sizeOfDirectory(file) != 0)).toList();
+                    if (!fileStream.isEmpty()) {
+                        zipFile.createSplitZipFile(fileStream, parameters, true, splitSize);
+                    }
+                    if (!folderStream.isEmpty()) {
+                        for (int i = 0; i < folderStream.size(); i++) {
+                            zipFile.createSplitZipFileFromFolder(folderStream.get(i), parameters, true, splitSize);
+                        }
+                    }
+                } else {
+                    for (File file : FilesList) {
+                        if (file.exists() && file.isFile() && file.length() != 0) {
+                            zipFile.addFile(file, parameters);
+                        } else if (file.exists() && file.isDirectory() && FileUtils.sizeOfDirectory(file) != 0) {
+                            zipFile.addFolder(file, parameters);
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -198,11 +238,31 @@ public class NewPackageWin extends JFrame {
                 parameters.setCompressionMethod(CompressionMethod.DEFLATE);
                 parameters.setCompressionLevel(CompressionLevel.NORMAL);
 
-                for (File file : FilesList) {
-                    if (file.exists() && file.isFile() && file.length() != 0) {
-                        zipFile.addFile(file, parameters);
-                    } else if (file.exists() && file.isDirectory() && FileUtils.sizeOfDirectory(file) != 0) {
-                        zipFile.addFolder(file, parameters);
+                if (IsSplit) {
+                    long splitSize = switch (Objects.requireNonNull(SplitTypeComboBox.getSelectedItem()).toString()) {
+                        case "10M" -> 10485760;
+                        case "100M" -> 104857600;
+                        case "1000M" -> 1048576000;
+                        default -> 0;
+                    };
+
+                    List<File> fileStream = Arrays.stream(FilesList).filter(file -> (file.exists() && file.isFile() && file.length() != 0)).toList();
+                    List<File> folderStream = Arrays.stream(FilesList).filter(file -> (file.exists() && file.isDirectory() && FileUtils.sizeOfDirectory(file) != 0)).toList();
+                    if (!fileStream.isEmpty()) {
+                        zipFile.createSplitZipFile(fileStream, parameters, true, splitSize);
+                    }
+                    if (!folderStream.isEmpty()) {
+                        for (int i = 0; i < folderStream.size(); i++) {
+                            zipFile.createSplitZipFileFromFolder(folderStream.get(i), parameters, true, splitSize);
+                        }
+                    }
+                } else {
+                    for (File file : FilesList) {
+                        if (file.exists() && file.isFile() && file.length() != 0) {
+                            zipFile.addFile(file, parameters);
+                        } else if (file.exists() && file.isDirectory() && FileUtils.sizeOfDirectory(file) != 0) {
+                            zipFile.addFolder(file, parameters);
+                        }
                     }
                 }
             } catch (Exception e) {
