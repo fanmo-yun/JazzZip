@@ -13,6 +13,7 @@ import org.JazzZip.gui.PasswdDialog;
 import org.JazzZip.gui.ShowFileInfoWin;
 import org.JazzZip.gui.ShowInfoWin;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -23,10 +24,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
 
 public class ZipProcess {
     public static boolean CheckZipFile(ZipFile zipFile, JFrame frame) {
@@ -307,6 +306,68 @@ public class ZipProcess {
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(frame, "文件读取失败", "JazzZip", JOptionPane.ERROR_MESSAGE);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void MoveFilesOrFolder(String f, JFrame frame, TreePath[] cutNode, TreePath pasteNode) {
+        ZipFile zipFile = new ZipFile(f);
+        if (cutNode == null || pasteNode == null) {
+            return;
+        }
+        if (CheckZipFile(zipFile, frame)) {
+            return;
+        }
+        try(zipFile) {
+            char[] passwd = ZipPassword(zipFile, frame);
+            if (passwd != null) {
+                if (!Arrays.equals(passwd, "".toCharArray())) {
+                    zipFile.setPassword(passwd);
+                } else {
+                    return;
+                }
+            }
+            zipFile.setCharset(Charset.forName("GBK"));
+            String cutDir = String.valueOf(Paths.get(System.getProperty("user.dir") + "\\temp").resolve(String.valueOf(System.currentTimeMillis())));
+            List<String> cutFiles = PathJoins(cutNode);
+            if (cutFiles == null) {return;}
+            String pasteFile = PathJoin(pasteNode);
+            if (pasteFile == null) {return;}
+            for (int i = 0; i < cutFiles.size(); i++) {
+                zipFile.extractFile(cutFiles.get(i), cutDir);
+            }
+            String pasteDir = String.valueOf(Paths.get(System.getProperty("user.dir") + "\\temp").resolve(String.valueOf(System.currentTimeMillis())));
+            zipFile.extractFile(pasteFile, pasteDir);
+
+            Collection<File> files = FileUtils.listFilesAndDirs(new File(cutDir), TrueFileFilter.TRUE, TrueFileFilter.TRUE);
+            List<File> fileList = new ArrayList<>(files.stream().toList());
+            fileList.remove(fileList.size() - 1);
+            for (File file : fileList) {
+                try {
+                    if (file.isFile()) {
+                        FileUtils.moveFileToDirectory(file, new File(pasteDir + "\\" + pasteFile), false);
+                    } else if (file.isDirectory()) {
+                        FileUtils.moveDirectoryToDirectory(file, new File(pasteDir + "\\" + pasteFile), false);
+                    }
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            ZipParameters parameters = new ZipParameters();
+            parameters.setCompressionMethod(CompressionMethod.DEFLATE);
+            parameters.setCompressionLevel(CompressionLevel.NORMAL);
+            if (passwd != null) {
+                parameters.setEncryptFiles(true);
+                parameters.setEncryptionMethod(EncryptionMethod.AES);
+                parameters.setAesKeyStrength(AesKeyStrength.KEY_STRENGTH_256);
+            }
+            String ParentPath = PathJoin(pasteNode.getParentPath());
+            parameters.setRootFolderNameInZip(Objects.requireNonNullElse(ParentPath, ""));
+            zipFile.addFolder(new File(pasteDir + "\\" + pasteFile), parameters);
+            zipFile.removeFiles(cutFiles);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(frame, "文件移动错误", "JazzZip", JOptionPane.ERROR_MESSAGE);
             throw new RuntimeException(e);
         }
     }

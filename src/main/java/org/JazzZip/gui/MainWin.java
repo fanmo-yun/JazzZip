@@ -8,8 +8,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.tree.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +20,10 @@ public class MainWin {
     private static TreePath selectedChangeNode = null;
     private static TreePath[] selectedDeleNode = null;
     private static TreePath[] selectedExtractNode = null;
+    private static TreePath[] selectedCutNode = null;
+    private static TreePath selectedPasteNode = null;
+    private static TreePath[] cutNode = null;
+    private static TreePath pasteNode = null;
     private static List<FileHeader> zipFileNames = null;
     private static JFrame MainFrame;
     private static JTree tree;
@@ -46,6 +49,10 @@ public class MainWin {
         selectedInfoNode = null;
         selectedExtractNode = null;
         selectedChangeNode = null;
+        selectedCutNode = null;
+        selectedPasteNode = null;
+        cutNode = null;
+        pasteNode = null;
         zipFileNames = null;
     }
 
@@ -104,13 +111,38 @@ public class MainWin {
         DefaultTreeModel treeModel = new DefaultTreeModel(top_node);
         tree = new JTree(treeModel);
         AddPopupMenu();
-        tree.setDragEnabled(true);
         tree.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
             if (SwingUtilities.isLeftMouseButton(e)) {
                 SelectNode(e);
             }
+            }
+        });
+        tree.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                super.keyPressed(e);
+                if (!selectedFilePath.isEmpty() && selectedCutNode != null && selectedFilePath.toLowerCase().endsWith(".zip") && e.getModifiersEx() == InputEvent.CTRL_DOWN_MASK && e.getKeyCode() == KeyEvent.VK_D) {
+                    cutNode = selectedCutNode;
+                }
+            }
+        });
+
+        tree.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                super.keyPressed(e);
+                if (!selectedFilePath.isEmpty() && selectedPasteNode != null && selectedFilePath.toLowerCase().endsWith(".zip") && e.getModifiersEx() == InputEvent.CTRL_DOWN_MASK && e.getKeyCode() == KeyEvent.VK_B) {
+                    pasteNode = selectedPasteNode;
+                    ZipProcess.MoveFilesOrFolder(selectedFilePath, MainFrame, cutNode, pasteNode);
+                    ProcessFile(selectedFilePath);
+                    tree.clearSelection();
+                    cutNode = null;
+                    pasteNode = null;
+                    selectedCutNode = null;
+                    selectedPasteNode = null;
+                }
             }
         });
         tree.addMouseListener(new DoubleClick());
@@ -150,7 +182,9 @@ public class MainWin {
             selectedExtractNode = tree.getSelectionPaths();
             selectedChangeNode = tree.getSelectionPath();
             selectedInfoNode = tree.getSelectionPath();
+            selectedCutNode = tree.getSelectionPaths();
             if (!selected.isLeaf()) {
+                selectedPasteNode = tree.getSelectionPath();
                 selectedAddNode = tree.getSelectionPath();
             }
         }
