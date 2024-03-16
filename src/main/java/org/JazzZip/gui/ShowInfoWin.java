@@ -38,7 +38,6 @@ public class ShowInfoWin extends JFrame {
         JPanel panel = new JPanel(new BorderLayout());
         File selectedFile = new File(f);
 
-        
         String fileInfo =
                 "名称: " + selectedFile.getName() +
                 "\n位置: " + selectedFile.getParent() +

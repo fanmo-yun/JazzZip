@@ -95,7 +95,9 @@ public class MainWin {
 
         JMenu aboutMenu = new JMenu("关于");
         JMenuItem aboutBook = new JMenuItem("软件说明");
+        aboutBook.addActionListener(e -> aboutPage(true));
         JMenuItem aboutSoftware = new JMenuItem("关于该软件");
+        aboutSoftware.addActionListener(e -> aboutPage(false));
         aboutMenu.add(aboutBook);
         aboutMenu.add(aboutSoftware);
 
@@ -104,6 +106,15 @@ public class MainWin {
         menuBar.add(infoMenu);
         menuBar.add(aboutMenu);
         MainFrame.setJMenuBar(menuBar);
+    }
+
+    private static void aboutPage(boolean isBook) {
+        try {
+            AboutWin aboutWin = new AboutWin(MainFrame, isBook);
+            aboutWin.setVisible(true);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     private static void BuildUI() {
