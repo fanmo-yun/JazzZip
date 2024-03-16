@@ -93,9 +93,16 @@ public class MainWin {
         infoMenu.add(infomationfile);
         infoMenu.add(infofilename);
 
+        JMenu aboutMenu = new JMenu("关于");
+        JMenuItem aboutBook = new JMenuItem("软件说明");
+        JMenuItem aboutSoftware = new JMenuItem("关于该软件");
+        aboutMenu.add(aboutBook);
+        aboutMenu.add(aboutSoftware);
+
         menuBar.add(fileMenu);
         menuBar.add(editorMenu);
         menuBar.add(infoMenu);
+        menuBar.add(aboutMenu);
         MainFrame.setJMenuBar(menuBar);
     }
 
